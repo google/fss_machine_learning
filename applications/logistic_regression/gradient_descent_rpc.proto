@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package private_join_and_compute;
+
+import "applications/logistic_regression/gradient_descent_messages.proto";
+import "applications/secure_sigmoid/secure_sigmoid.proto";
+import "applications/secure_sigmoid_new_mic/secure_sigmoid_new_mic.proto";
+
+// Messages for "No DP" gradient descent
+
+message StartMessage {}
+message EndMessage {}
+
+// Client acts as Party 0, and initiates the execution.
+message GradientDescentClientMessage {
+  oneof client_message_oneof {
+	
+		// These messages are to be executed before the gradient descent
+		// loop
+		MaskedXMessage client_masked_x_message = 1;
+		MaskedXTransposeMessage client_masked_x_transpose_message = 2;
+    
+		// Sent at the start of each loop iteration
+		StartMessage start_message = 15;
+		
+		// These messages constitute the 6 round gradient descent loop
+		RoundOneGradientDescentMessage
+        client_gradient_descent_round_1_message = 3;
+		
+		// These messages constitute the 4-round sigmoid implementation.
+    applications.RoundOneSigmoidMessage
+		    client_sigmoid_round_1_message = 4;
+		applications.RoundTwoSigmoidMessage
+				client_sigmoid_round_2_message = 5;
+		applications.RoundThreeSigmoidMessage
+				client_sigmoid_round_3_message = 6;
+		applications.RoundFourSigmoidMessage
+				client_sigmoid_round_4_message = 7;
+	  
+		// These messages constitute the 6-round sigmoid implementation using the
+		// new MIC gate.
+    applications.RoundOneSigmoidNewMicMessage
+		    client_sigmoid_new_mic_round_1_message = 9;
+		applications.RoundTwoSigmoidNewMicMessage
+				client_sigmoid_new_mic_round_2_message = 10;
+		applications.RoundThreeSigmoidNewMicMessage
+				client_sigmoid_new_mic_round_3_message = 11;
+		applications.RoundThreePointFiveSigmoidNewMicMessage
+			client_sigmoid_new_mic_round_3_point_5_message = 12;
+		applications.RoundFourSigmoidNewMicMessage
+				client_sigmoid_new_mic_round_4_message = 13;
+		applications.RoundFiveSigmoidNewMicMessage
+				client_sigmoid_new_mic_round_5_message = 14;
+
+		RoundThreeGradientDescentMessage
+		    client_gradient_descent_final_message = 8;
+  }
+}
+
+// Server acts as Party 1 and responds to the client
+// initiating the execution.
+message GradientDescentServerMessage {
+  oneof server_message_oneof {
+		// These messages are to be executed before the gradient descent
+		// loop
+		MaskedXMessage server_masked_x_message = 1;
+		MaskedXTransposeMessage server_masked_x_transpose_message = 2;
+    
+		// These messages constitute the 6 round gradient descent loop
+		RoundOneGradientDescentMessage
+        server_gradient_descent_round_1_message = 3;
+		
+		// These messages constitute the 4-round sigmoid implementation using only
+		// FSS Gates
+    applications.RoundOneSigmoidMessage
+		    server_sigmoid_round_1_message = 4;
+		applications.RoundTwoSigmoidMessage
+				server_sigmoid_round_2_message = 5;
+		applications.RoundThreeSigmoidMessage
+				server_sigmoid_round_3_message = 6;
+		applications.RoundFourSigmoidMessage
+				server_sigmoid_round_4_message = 7;
+	  
+		// These messages constitute the 6-round sigmoid implementation using the
+		// new MIC gate.
+    applications.RoundOneSigmoidNewMicMessage
+		    server_sigmoid_new_mic_round_1_message = 9;
+		applications.RoundTwoSigmoidNewMicMessage
+				server_sigmoid_new_mic_round_2_message = 10;
+		applications.RoundThreeSigmoidNewMicMessage
+				server_sigmoid_new_mic_round_3_message = 11;
+		applications.RoundThreePointFiveSigmoidNewMicMessage
+			server_sigmoid_new_mic_round_3_point_5_message = 12;
+		applications.RoundFourSigmoidNewMicMessage
+				server_sigmoid_new_mic_round_4_message = 13;
+		applications.RoundFiveSigmoidNewMicMessage
+				server_sigmoid_new_mic_round_5_message = 14;
+
+		RoundThreeGradientDescentMessage
+		    server_gradient_descent_final_message = 8;
+		
+		// Sent at the end of each loop iteration.
+		EndMessage end_message = 15;
+  }
+}
+
+// gRPC interface for Gradient Descent.
+service GradientDescentRpc {
+  // Handles a single protocol round.
+  rpc Handle(GradientDescentClientMessage) returns (GradientDescentServerMessage) {}
+}

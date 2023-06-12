@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package private_join_and_compute.applications;
+
+import "applications/const_round_secure_comparison/const_round_secure_comparison.proto";
+import "poisson_regression/beaver_triple_messages.proto";
+
+message StartMessage {}
+message EndMessage {}
+
+// Client acts as Party 0, and initiates the execution.
+message ConstRoundSecureComparisonClientMessage {
+  oneof client_message_oneof {   
+    StartMessage client_start_message = 1;
+		RoundOneSecureComparisonMessage
+		    client_round_1_message = 2;
+		RoundTwoSecureComparisonMessage client_round_2_message = 3;
+		RoundThreeSecureComparisonMessage
+		    client_round_3_message = 4;
+  }
+}
+
+// Server acts as Party 1 and responds to the client
+// initiating the execution.
+message ConstRoundSecureComparisonServerMessage {
+  oneof server_message_oneof {
+    RoundOneSecureComparisonMessage
+		    server_round_1_message = 1;
+		RoundTwoSecureComparisonMessage
+				server_round_2_message = 2;
+		RoundThreeSecureComparisonMessage
+		    server_round_3_message = 3;
+		EndMessage server_end_message = 4;
+  }
+}
+
+// gRPC interface for Secure Comparison.
+service ConstRoundSecureComparisonRpc {
+  // Handles a single protocol round.
+  rpc Handle(ConstRoundSecureComparisonClientMessage) returns
+		(ConstRoundSecureComparisonServerMessage) {}
+}

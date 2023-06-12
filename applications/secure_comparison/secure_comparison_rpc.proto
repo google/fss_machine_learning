@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package private_join_and_compute;
+
+import "applications/secure_comparison/secure_comparison.proto";
+import "poisson_regression/beaver_triple_messages.proto";
+
+// Client acts as Party 0, and initiates the execution.
+message SecureComparisonClientMessage {
+  oneof client_message_oneof {   
+    ComparisonMessageRoundOne
+		    client_round_1_message = 1;
+		// Comparison will have log_2(num_splits) rounds consisting of AND gates
+		// implemented by Beaver multiplicaiton in Z_2. 
+		// In each such round, the server and client will exchange a
+		// MultiplicationGateMessage.
+		MultiplicationGateMessage
+		    client_multiplication_gate_message = 2;
+  }
+}
+
+// Server acts as Party 1 and responds to the client
+// initiating the execution.
+message SecureComparisonServerMessage {
+  oneof server_message_oneof {
+    ComparisonMessageRoundOne
+		    server_round_1_message = 1;
+		// Comparison will have log_2(num_splits) rounds consisting of AND gates
+		// implemented by Beaver multiplicaiton in Z_2. 
+		// In each such round, the server and client will exchange a
+		// MultiplicationGateMessage.
+		MultiplicationGateMessage
+		    server_multiplication_gate_message = 2;		
+  }
+}
+
+// gRPC interface for Secure Comparison.
+service SecureComparisonRpc {
+  // Handles a single protocol round.
+  rpc Handle(SecureComparisonClientMessage) returns
+		(SecureComparisonServerMessage) {}
+}

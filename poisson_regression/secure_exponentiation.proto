@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package private_join_and_compute;
+
+// Proto for the message sent from P_0 to P_1 in the secure exponentiation
+// protocol.
+// The message sent is the serialization of an element in Z_{prime_q} which is
+// the multiplication of beta_zero and the multiplicative share of the result
+// held by P_0.
+message ExponentiationPartyZeroMultToAddMessage {
+  uint64 beta_zero_times_mult_share_zero = 1;
+}
+
+// Same as ExponentiationPartyZeroMultToAddMessage but for the batched
+// exponentiation where x is a vector of exponents, output is e^x[i] for all i.
+// The message sent is a serialization of a vector of elements in Z_{prime_q},
+// one element for each exponentiation.
+message BatchedExponentiationPartyZeroMultToAddMessage {
+  repeated uint64 beta_zero_times_mult_share_zero = 1;
+}
+
+// Proto for the message sent from P_1 to P_0 in the secure exponentiation
+// protocol.
+// The message sent is the serialization of an element in Z_{prime_q} which is
+// the multiplication of alpha_one and the multiplicative share of the result
+// held by P_1.
+message ExponentiationPartyOneMultToAddMessage {
+  uint64 alpha_one_times_mult_share_one = 1;
+}
+
+// Same as ExponentiationPartyOneMultToAddMessage but for the batched
+// exponentiation where x is a vector of exponents, output is e^x[i] for all i.
+// The message sent is a serialization of a vector of elements in Z_{prime_q},
+// one element for each exponentiation.
+message BatchedExponentiationPartyOneMultToAddMessage {
+  repeated uint64 alpha_one_times_mult_share_one = 1;
+}

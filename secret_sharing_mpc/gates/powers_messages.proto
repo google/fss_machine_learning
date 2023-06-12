@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package private_join_and_compute;
+
+// Deprecated
+// Two parties exchange messages of this type in order to compute powers
+// [m], [m^2], [m^3], ..., [m^k] for a vector of ring elements m.
+// For logistic regression, m has the dimension equal to the number of training
+// examples. PowersMessage will be broadcast by all players once per iteration.
+message PowersMessageMminusB {
+  repeated uint64 vector_m_minus_vector_b_shares = 1;
+}
+
+// In the first round, the parties send two things:
+// 1. Exchange messages [m-b]^low in order to compute powers
+// [m], [m^2], [m^3], ..., [m^k] for a vector of ring elements m.
+// For logistic regression, m has the dimension equal to the number of training
+// examples. PowersMessage will be broadcast by all players once per iteration.
+// 2. Message to do the first step necessary for extending random OT
+// into 1-2 OT: sending the xor of 1-2 OT receiver bits and the Random OT
+// receiver/choice bits.
+// This is part of the Extending Oblivious Transfers protocol
+message PowersMessageRoundOne {
+  repeated uint64 vector_m_minus_vector_b_shares = 1;
+  repeated bool receiver_bit_xor_rot_choice_bit = 2;
+};

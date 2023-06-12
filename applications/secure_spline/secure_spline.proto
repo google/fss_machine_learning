@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package private_join_and_compute.applications;
+
+import "poisson_regression/beaver_triple_messages.proto";
+
+// Secure Spline Algorithm:
+
+// Round One:
+// P0, P1: Compute RoundOneSplineMessage msg_round1_P0, msg_round1_P1.
+// P0 -------------------msg_round1_P0----------------->>> P1
+// P0 <<<----------------msg_round1_P1-------------------- P1
+
+// Round Two:
+// P0, P1: Compute RoundTwoSplineMessage msg_round2_P0, msg_round2_P1.
+
+// P0 -------------------msg_round2_P0----------------->>> P1
+// P0 <<<----------------msg_round2_P1-------------------- P1
+
+message RoundOneSplineMessage {
+  // Since we will be executing spline on a vector of values, we need to
+  // generate n masked inputs in parallel.
+  repeated uint64 shares_of_masked_input = 1;
+}
+
+message RoundTwoSplineMessage {
+  // Two parties exchange messages of type MultiplicationGateMessage
+  // in order to multiply additively shared a_t (active interval degree one coefficient)
+  // and x (spline input)
+  // pointwise, to get additive shares of the result.
+  // The underline MultiplicationGateMessage has two vectors: share
+  // [X - A] and [Y - B], where [X], [Y] are the shares of input, and
+  // ([A], [B]) are shares in the Beaver triple vector ([A], [B], [C]),
+  // C[i] = A[i]*B[i] mod modulus and * represent regular multiplication.
+  repeated MultiplicationGateMessage hadamard_product = 1;
+}

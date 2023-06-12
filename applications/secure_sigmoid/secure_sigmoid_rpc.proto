@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package private_join_and_compute.applications;
+
+import "applications/secure_sigmoid/secure_sigmoid.proto";
+
+message StartMessage {}
+message EndMessage {}
+
+// Client acts as Party 0, and initiates the execution.
+message SecureSigmoidClientMessage {
+  oneof client_message_oneof {
+	  StartMessage start_message = 1;
+    applications.RoundOneSigmoidMessage
+		    client_round_1_message = 2;
+		applications.RoundTwoSigmoidMessage
+				client_round_2_message = 3;
+		applications.RoundThreeSigmoidMessage
+				client_round_3_message = 4;
+		applications.RoundFourSigmoidMessage
+				client_round_4_message = 5;
+  }
+}
+
+// Server acts as Party 1 and responds to the client
+// initiating the execution.
+message SecureSigmoidServerMessage {
+  oneof server_message_oneof {
+		// These messages constitute the 6 round gradient descent loop
+    applications.RoundOneSigmoidMessage
+		    server_round_1_message = 2;
+		applications.RoundTwoSigmoidMessage
+				server_round_2_message = 3;
+		applications.RoundThreeSigmoidMessage
+				server_round_3_message = 4;
+		applications.RoundFourSigmoidMessage
+				server_round_4_message = 5;
+		EndMessage end_message = 6;
+  }
+}
+
+// gRPC interface for Secure Sigmoid.
+service SecureSigmoidRpc {
+  // Handles a single protocol round.
+  rpc Handle(SecureSigmoidClientMessage) returns (SecureSigmoidServerMessage) {}
+}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package distributed_point_functions.fss_gates;
+//package private_join_and_compute;
+
+import "dpf/distributed_point_function.proto";
+
+message EqParameters {
+  // Represents the bit length of the inputs to the Equality
+  // gate. Here we assume that if `n` is the input bit-length, then the
+  // input groups of the gate are implicitly Z_N where N = 2^n (output is always Z_2), and
+  // hence the variable name "log_group_size". Maximum allowed log_group_size
+  // is 127.
+  int32 log_group_size = 1;
+
+  // Adding an additional field to make it compatible for arbitrary output groups
+  // TODO : Currently limited to power of 2 output groups. Supporting arbitrary output groups requires modifying the
+  // DPF parameter `value_type` from absl::uint128 to IntModN (in EqualityGate::Create)
+  optional uint64 output_group_modulus = 2;
+}
+
+// Represents a key for Equality gate. This corresponds to
+//`k_b` used in https://eprint.iacr.org/2020/1392. The key implicitly
+// corresponds to the EqParameters used to generate this key.
+message EqKey {
+  // Represents a Distributed Point Function Key.
+  DpfKey dpfkey = 1;
+
+  // Represents output mask shares.
+  Value.Integer output_mask_share = 2;
+}

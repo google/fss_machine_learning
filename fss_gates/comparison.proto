@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package distributed_point_functions.fss_gates;
+
+import "dcf/distributed_comparison_function.proto";
+import "dpf/distributed_point_function.proto";
+
+message CmpParameters {
+  // Represents the bit length of the inputs to the Comparison
+  // gate. Here we assume that if `n` is the input bit-length, then the
+  // input groups of the gate are implicitly Z_N where N = 2^n (output is always Z_2), and
+  // hence the variable name "log_group_size". Maximum allowed log_group_size
+  // is 127.
+  int32 log_group_size = 1;
+}
+
+// Represents a key for Comparison gate. This corresponds to
+//`k_b` used in https://eprint.iacr.org/2020/1392. The key implicitly
+// corresponds to the CmpParameters used to generate this key.
+message CmpKey {
+  // Represents a Distributed Comparison Function Key. This corresponds to
+  //`k_b^(N - 1)` used in https://eprint.iacr.org/2020/1392 (Fig. 14).
+  DcfKey dcfkey = 1;
+
+  // Represents output mask shares.
+  Value.Integer output_mask_share = 2;
+
+  // Represents beta_2 (dcf to ddcf reduction)
+  Value.Integer beta_two_share = 3;
+}

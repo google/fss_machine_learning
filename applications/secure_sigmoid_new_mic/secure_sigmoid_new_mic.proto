@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package private_join_and_compute.applications;
+
+import "poisson_regression/beaver_triple_messages.proto";
+import "poisson_regression/secure_exponentiation.proto";
+import "applications/secure_spline/secure_spline.proto";
+import "secret_sharing_mpc/gates/powers_messages.proto";
+import "secret_sharing_mpc/gates/polynomial_messages.proto";
+// import "applications/secure_comparison/secure_comparison.proto";
+import "applications/const_round_secure_comparison/const_round_secure_comparison.proto";
+
+// [x] -> x + r
+// parties will locally add  [r] to [x] and then broadcast [x + r]
+
+message RoundOneSigmoidNewMicMessage {
+
+   // Round 1 spline message + Round 1 MIC gate message [Cost: 1 element]
+  // Since we will be executing comparison on 6 intervals in parallel, we will need to store messages
+  // for each of the 6 intervals
+  repeated RoundOneSecureComparisonMessage round_one_comparison = 1;
+
+  RoundOneSplineMessage round_one_spline_message_pos = 2;
+
+  RoundOneSplineMessage round_one_spline_message_neg = 3;
+
+
+  // Add poisson exponentiation round 1 message [Cost: 1 element]
+
+  // secure_exponentiation.proto contains 2 different structs - BatchedExponentiationPartyZeroMultToAddMessage
+  // and BatchedExponentiationPartyOneMultToAddMessage - one for each party. But
+  // we want a single struct.
+  // Dirty temporary fix : Include both structs in RoundOneSigmoidMessage and ensure that
+  // only one (the relevant one depending on the party) is populated
+
+  // Use oneof
+    BatchedExponentiationPartyZeroMultToAddMessage round_one_exp_message_party0_pos = 4;
+
+    BatchedExponentiationPartyOneMultToAddMessage round_one_exp_message_party1_pos = 5;
+
+
+    BatchedExponentiationPartyZeroMultToAddMessage round_one_exp_message_party0_neg = 6;
+
+    BatchedExponentiationPartyOneMultToAddMessage round_one_exp_message_party1_neg = 7;
+
+  // oneof round_one_exp_message{
+  //    BatchedExponentiationPartyZeroMultToAddMessage round_one_exp_message_party0 = 4;
+//
+//      BatchedExponentiationPartyOneMultToAddMessage round_one_exp_message_party1 = 5;
+ //  }
+
+  // Call GenerateVectorMultToAddMessagePartyZero and GenerateVectorMultToAddMessagePartyOne in vector_exponentiation
+}
+
+// Locally parties can now evaluate MIC gate and get secret shares of the result of MIC gate
+
+message RoundTwoSigmoidNewMicMessage {
+
+
+// Add Round 2 spline message [Cost: Number of spline intervals many elements]
+
+    RoundTwoSplineMessage round_two_spline_message_pos = 1;
+
+    RoundTwoSplineMessage round_two_spline_message_neg = 2;
+
+// Add Round 1 polynomial message [Cost: 1 + 1 + 1 = 3 elements]
+
+    PowersMessageRoundOne round_one_polynomial_message_pos = 3;
+
+    PowersMessageRoundOne round_one_polynomial_message_neg = 4;
+
+
+// Call VectorExponentiationPartyZero and VectorExponentiationPartyOne in vector_exponentiation.h
+// Call PolynomialGenerateRoundOneMessage in polynomial.h
+
+        // Round two message of secure comparison for each of the 6 intervals
+        repeated RoundTwoSecureComparisonMessage round_two_comparison = 5;
+
+}
+
+message RoundThreeSigmoidNewMicMessage {
+
+// Add Round 2 polynomial message [Cost : 2 + 2 = 4 elements]
+
+    PolynomialMessageRoundTwo round_two_polynomial_message_pos = 1;
+
+    PolynomialMessageRoundTwo round_two_polynomial_message_neg = 2;
+
+// Call PolynomialGenerateRoundTwoMessagePartyZero and PolynomialGenerateRoundTwoMessagePartyOne in polynomial.h
+
+    // Round three message of secure comparison for each of the 6 intervals
+            repeated RoundThreeSecureComparisonMessage round_three_comparison = 3;
+}
+
+
+message RoundThreePointFiveSigmoidNewMicMessage {
+    
+        // This message will carry the bit beaver multiplication message corresponding 
+        // to the product of two comparsion results
+        // Vector of length 6
+
+        repeated MultiplicationGateMessage hadamard_message_for_ANDing_comparison_results = 1;
+}
+
+
+message MUX_round_1{
+
+    // repeated over batch of inputs - n
+    repeated bool receiver_bit_xor_rot_choice_bit = 1;
+
+}
+
+message RoundFourSigmoidNewMicMessage {
+
+
+        // Repeated over 6 intervals
+        repeated MUX_round_1 mux_round_1 = 1;
+
+ //   repeated MultiplicationGateMessage hadamard_message_for_branching = 1;
+// Multiply MIC gate output with spline, powers [Cost : Number of branches = 6 elements]
+
+}
+
+message MUX_round_2{
+        // repeated over batch of inputs - n
+        repeated uint64 ot_round_2_first_sender_msg = 1;
+        repeated uint64 ot_round_2_second_sender_msg = 2;
+}
+message RoundFiveSigmoidNewMicMessage {
+
+        // Repeated over 6 intervals
+        repeated MUX_round_2 mux_round_2 = 1;
+
+}
+
+
+
+

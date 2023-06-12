@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package private_join_and_compute.applications;
+
+import "poisson_regression/beaver_triple_messages.proto";
+import "poisson_regression/secure_exponentiation.proto";
+import "applications/secure_spline/secure_spline.proto";
+import "secret_sharing_mpc/gates/powers_messages.proto";
+import "secret_sharing_mpc/gates/polynomial_messages.proto";
+
+// [x] -> x + r
+// parties will locally add  [r] to [x] and then broadcast [x + r]
+
+message RoundOneSigmoidMessage {
+  // Round 1 spline message + Round 1 MIC gate message [Cost: 1 element]
+  // Since we will be executing spline on a vector of values, we need to
+  // generate n masked inputs in parallel.
+  repeated uint64 shares_of_masked_input_for_branching = 1;
+  RoundOneSplineMessage round_one_spline_message_pos = 2;
+  RoundOneSplineMessage round_one_spline_message_neg = 3;
+
+  // Add poisson exponentiation round 1 message [Cost: 1 element]
+
+  // TODO: secure_exponentiation.proto contains 2 different structs - BatchedExponentiationPartyZeroMultToAddMessage
+  // and BatchedExponentiationPartyOneMultToAddMessage - one for each party. But
+  // we want a single struct.
+  // Dirty temporary fix : Include both structs in RoundOneSigmoidMessage and ensure that
+  // only one (the relevant one depending on the party) is populated
+
+  // TODO : Use oneof
+    BatchedExponentiationPartyZeroMultToAddMessage round_one_exp_message_party0_pos = 4;
+    BatchedExponentiationPartyOneMultToAddMessage round_one_exp_message_party1_pos = 5;
+    BatchedExponentiationPartyZeroMultToAddMessage round_one_exp_message_party0_neg = 6;
+    BatchedExponentiationPartyOneMultToAddMessage round_one_exp_message_party1_neg = 7;
+}
+
+// Locally parties can now evaluate MIC gate and get secret shares of the result of MIC gate
+
+message RoundTwoSigmoidMessage {
+    RoundTwoSplineMessage round_two_spline_message_pos = 1;
+    RoundTwoSplineMessage round_two_spline_message_neg = 2;
+    PowersMessageRoundOne round_one_polynomial_message_pos = 3;
+    PowersMessageRoundOne round_one_polynomial_message_neg = 4;
+}
+
+message RoundThreeSigmoidMessage {
+    PolynomialMessageRoundTwo round_two_polynomial_message_pos = 1;
+    PolynomialMessageRoundTwo round_two_polynomial_message_neg = 2;
+}
+
+message RoundFourSigmoidMessage {
+    repeated MultiplicationGateMessage hadamard_message_for_branching = 1;
+}
+
+
+
+

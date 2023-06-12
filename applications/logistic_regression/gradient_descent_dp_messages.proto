@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package private_join_and_compute;
+
+import "secret_sharing_mpc/gates/correlated_beaver_triple_messages.proto";
+
+// The gradient descent is computed as:
+// theta(t+1) = theta(t) -
+//              alpha * [(1 / X.size) * X.transpose * (sigmoid(X * theta(t)) - y) + noise + (lambda / X.size) * theta(t)]
+
+// Before Gradient Descent Iterations
+
+// Before the first gradient descent iteration, X^T-A messages
+// are exchanged. These messages are used in the products during the gradient
+// descent iterations to compute [g] = [X.transpose * d].
+
+// During Gradient Descent Iterations
+
+// Round for X^Transpose * d:
+// P0, P1: Compute message for the multiplication [g] = [X.transpose * d].
+// P0: Compute GradientDescentPartyZeroXTransposeDMessage msg_P0.
+// P1: Compute GradientDescentPartyOneXTransposeDMessage msg_P1.
+// P0 -------------------msg_P0----------------->>> P1
+// P0 <<<----------------msg_P1-------------------- P1
+
+// Round for Revealing scaled_g_noise:
+// P0, P1: Reveal share [scaled_g_noise_regularized] to reconstruct scaled_g_noise_regularized
+// P0 -------------------msg_P0----------------->>> P1
+// P0 <<<----------------msg_P1-------------------- P1
+
+message MaskedXTransposeMessage {
+  MatrixXminusAProductMessage matrix_x_transpose_minus_matrix_a_message = 1;
+}
+
+// Two parties exchange messages of type MatrixMultiplicationGateMessage
+// in order to matrix-multiply additively shared matrix X.transpose and d,
+// to get additive shares of the product.
+// The underlying MatrixMultiplicationGateMessage has two matrices: share
+// [X.transpose - A] and [d - B], where [X.transpose], [d] are the shares of
+// input, and
+// ([A], [B]) are shares in the Beaver triple matrix ([A], [B], [C = A*B]),
+// * represents matrix product mod modulus.
+message XTransposeDMessage {
+  MatrixYminusBProductMessage matrix_d_minus_matrix_b_message = 1;
+}
+
+message ReconstructGradientMessage {
+  repeated uint64 vector_scaled_g_noise_regularized_gradient = 1;
+}

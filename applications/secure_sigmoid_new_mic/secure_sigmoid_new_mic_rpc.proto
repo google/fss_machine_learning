@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package private_join_and_compute.applications;
+
+import "applications/secure_sigmoid_new_mic/secure_sigmoid_new_mic.proto";
+
+message StartMessage {}
+message EndMessage {}
+
+// Client acts as Party 0, and initiates the execution.
+message SecureSigmoidNewMicClientMessage {
+  oneof client_message_oneof {   
+	StartMessage start_message = 1;
+		// These messages constitute the 6 round gradient descent loop
+    RoundOneSigmoidNewMicMessage
+		    client_round_1_message = 2;
+		RoundTwoSigmoidNewMicMessage
+				client_round_2_message = 3;
+		RoundThreeSigmoidNewMicMessage
+				client_round_3_message = 4;
+		RoundThreePointFiveSigmoidNewMicMessage
+			client_round_3_point_5_message = 5;
+		RoundFourSigmoidNewMicMessage
+				client_round_4_message = 6;
+		RoundFiveSigmoidNewMicMessage
+				client_round_5_message = 7;
+  }
+}
+
+// Server acts as Party 1 and responds to the client
+// initiating the execution.
+message SecureSigmoidNewMicServerMessage {
+  oneof server_message_oneof {
+		// These messages constitute the 6 round gradient descent loop
+    RoundOneSigmoidNewMicMessage
+		    server_round_1_message = 2;
+		RoundTwoSigmoidNewMicMessage
+				server_round_2_message = 3;
+		RoundThreeSigmoidNewMicMessage
+				server_round_3_message = 4;
+		RoundThreePointFiveSigmoidNewMicMessage
+			server_round_3_point_5_message = 5;
+		RoundFourSigmoidNewMicMessage
+				server_round_4_message = 6;
+		RoundFiveSigmoidNewMicMessage
+				server_round_5_message = 7;
+		EndMessage end_message = 8;
+  }
+}
+
+// gRPC interface for Secure Sigmoid with New MIC Gate .
+service SecureSigmoidNewMicRpc {
+  // Handles a single protocol round.
+  rpc Handle(SecureSigmoidNewMicClientMessage) returns
+	 (SecureSigmoidNewMicServerMessage) {}
+}

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package private_join_and_compute.applications;
+
+import "poisson_regression/beaver_triple_messages.proto";
+
+message SharesOfMaskedInputPieces{
+    // Vector of length q (number of pieces)
+    // TODO : Contains masked inputs for the short equality and comparison gates
+    repeated uint64 shares_of_masked_input_pieces_for_eq = 1;
+    repeated uint64 shares_of_masked_input_pieces_for_lt = 2;
+}
+
+message RoundOneSecureComparisonMessage{
+    // Vector of length = batch size
+    repeated SharesOfMaskedInputPieces shares_of_masked_input_pieces = 1;
+}
+
+message BitSharingsOfMaskedIDPFInput{
+
+    // Vector of length = num_pieces - 1
+    repeated uint64 bit_shares = 1;
+}
+
+message RoundTwoSecureComparisonMessage{
+
+    // TODO : Contains masked input for the iDPF
+    // Vector of length = batch size
+    repeated BitSharingsOfMaskedIDPFInput bit_shares_of_masked_input_for_idpf = 1;
+
+}
+
+
+
+message RoundThreeSecureComparisonMessage{
+
+// TODO : Contains Beaver multiplication messages
+// Vector of length = batch size
+// Each MultiplicationGateMessage is itself a vector of length = number of pieces
+repeated MultiplicationGateMessage hadamard_message_for_branching = 1;
+
+}

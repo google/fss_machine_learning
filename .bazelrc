@@ -1,0 +1,4 @@
+build --cxxopt=-std=c++14
+build --host_cxxopt=-std=c++14
+build -c opt
+build --check_visibility=false

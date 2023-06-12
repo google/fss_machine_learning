@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package private_join_and_compute;
+
+import "secret_sharing_mpc/gates/correlated_beaver_triple_messages.proto";
+
+// The gradient descent is computed as:
+// theta(t+1) = theta(t) -
+//              (alpha/ X.size) * X.transpose * (sigmoid(X * theta(t)) - y)
+
+// Before the first gradient descent iteration, X-A and X^T-A messages
+// are exchanged. These messages are used in the products during the gradient
+// descent iterations to compute [u] = [X * theta] and [g] = [X.transpose * d].
+
+// Round One:
+// P0, P1: Compute RoundOneGradientDescentMessage msg_round1_P0, msg_round1_P1
+// in order to compute [u] = [X * theta].
+// P0 -------------------msg_round1_P0----------------->>> P1
+// P0 <<<----------------msg_round1_P1-------------------- P1
+
+// Round Three:
+// P0, P1: Compute message for the multiplication [g] = [X.transpose * d].
+// P0: Compute GradientDescentPartyZeroRoundThreeMessage msg_round3_P0.
+// P1: Compute GradientDescentPartyOneRoundThreeMessage msg_round3_P1.
+// P0 -------------------msg_round3_P0----------------->>> P1
+// P0 <<<----------------msg_round3_P1-------------------- P1
+
+message MaskedXMessage {
+  MatrixXminusAProductMessage matrix_x_minus_matrix_a_message = 1;
+}
+
+message MaskedXTransposeMessage {
+  MatrixXminusAProductMessage matrix_x_transpose_minus_matrix_a_message = 1;
+}
+
+// Two parties exchange messages of type MatrixMultiplicationGateMessage
+// in order to matrix-multiply additively shared matrix Theta and X, to get
+// additive shares of the product.
+// The underlying MatrixMultiplicationGateMessage has two matrices: share
+// [X - A] and [Theta - B], where [X], [Theta] are the shares of input, and
+// ([A], [B]) are shares in the Beaver triple matrix ([A], [B], [C = A*B]),
+// * represents matrix product mod modulus.
+message RoundOneGradientDescentMessage {
+  MatrixYminusBProductMessage matrix_theta_minus_matrix_b_message = 1;
+}
+
+// Two parties exchange messages of type MatrixMultiplicationGateMessage
+// in order to matrix-multiply additively shared matrix X.transpose and d,
+// to get additive shares of the product.
+// The underlying MatrixMultiplicationGateMessage has two matrices: share
+// [X.transpose - A] and [d - B], where [X.transpose], [d] are the shares of
+// input, and
+// ([A], [B]) are shares in the Beaver triple matrix ([A], [B], [C = A*B]),
+// * represents matrix product mod modulus.
+message RoundThreeGradientDescentMessage {
+  MatrixYminusBProductMessage matrix_d_minus_matrix_b_message = 1;
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package private_join_and_compute;
+
+// Contains masked inputs for the short equality and comparison gates
+// For x[i] = x1....xq (for each comparison input x[]), the message is structured as follows:
+// masked_input_short_comparison
+//     Comparison 1: masked_x1 ... masked_xq
+//     ...
+//     Comparison n: masked_x1 ... masked_xq
+// Symmetric for masked_input_short_equality
+message ComparisonMessageRoundOne {
+  repeated uint32 masked_input_short_comparison = 1;
+  repeated uint32 masked_input_short_equality = 2;
+};

@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package private_join_and_compute;
+
+import "poisson_regression/beaver_triple_messages.proto";
+import "poisson_regression/secure_exponentiation.proto";
+
+// Gradient descent algorithm:
+// theta(t+1) = (1 - beta)*theta(t) +
+//              alpha*[Sum_i x_i*(y_i - delta_t_i*exp(<theta(t), x_i>))].
+
+// Round One:
+// P0, P1: Compute GradientDescentRoundOneMessage msg_round1_P0, msg_round1_P1.
+// P0 -------------------msg_round1_P0----------------->>> P1
+// P0 <<<----------------msg_round1_P1-------------------- P1
+
+// Round Two:
+// P0, P1: Compute share of the dot product [u_i] = [<theta(t), x_i>].
+// P0, P1: Compute GradientDescentRoundTwoMessage msg_round2_P0, msg_round2_P1.
+
+// P0 -------------------msg_round2_P0----------------->>> P1
+// P0 <<<----------------msg_round2_P1-------------------- P1
+
+// Round Three:
+// P0, P1: Compute share of the multiplication [v_i] = exp([u_i]).
+// P0: Compute GradientDescentPartyZeroRoundThreeMessage msg_round3_P0.
+// P1: Compute GradientDescentPartyZeroRoundThreeMessage msg_round3_P1.
+// P0 -------------------msg_round3_P0----------------->>> P1
+// P0 <<<----------------msg_round3_P1-------------------- P1
+
+// Round Four:
+// P0, P1: Compute share of the exponentiation [w_i] = [delta_t_i*v_i].
+// P0, P1: Locally compute share [s_i] = [y_i - w_i].
+// P0, P1: Compute GradientDescentRoundFourMessage msg_round4_P0, msg_round4_P1.
+// P0 -------------------msg_round4_P0----------------->>> P1
+// P0 <<<----------------msg_round4_P1-------------------- P1
+
+// Update Gradent Descent Step
+// P0, P1: Compute share of the dot product [z_i] = [<x_i, s_i>].
+// P0, P1: Locally update share Theta: [Theta] = (1 - beta)*[Theta] + alpha*[Z].
+// This is followed by a truncation step, which is also done locally.
+
+// Two parties exchange messages of type MatrixMultiplicationGateMessage
+// in order to matrix-multiply additively shared matrix Theta and X, to get
+// additive shares of the product.
+// The underline MatrixMultiplicationGateMessage has two matrices: share
+// [X - A] and [Theta - B], where [X], [Theta] are the shares of input, and
+// ([A], [B]) are shares in the Beaver triple matrix ([A], [B], [C = A*B]),
+// * represents matrix multiplication mod modulus.
+message GradientDescentRoundOneMessage {
+  MatrixMultiplicationGateMessage matrix_mult_message = 1;
+}
+
+// Messages exchanged by party Zero and party One to compute the exponentiation
+// gate in secure setting.
+message GradientDescentPartyZeroRoundTwoMessage {
+  repeated ExponentiationPartyZeroMultToAddMessage exp_message = 1;
+}
+message GradientDescentPartyOneRoundTwoMessage {
+  repeated ExponentiationPartyOneMultToAddMessage exp_message = 1;
+}
+
+// Two parties exchange messages of type MultiplicationGateMessage
+// in order to multiply additively shared matrix Delta and V pointwise, to get
+// additive shares of the result.
+// The underline MatrixMultiplicationGateMessage has two matrices: share
+// [Delta - A] and [V - B], where [Delta], [V] are the shares of input, and
+// ([A], [B]) are shares in the Beaver triple vector ([A], [B], [C]),
+// C[i] = A[i]*B[i] mod modulus and * represent regular multiplication.
+message GradientDescentRoundThreeMessage {
+  MultiplicationGateMessage batched_mult_message = 1;
+}
+
+// Two parties exchange messages of type MatrixMultiplicationGateMessage
+// in order to matrix-multiply additively shared matrix X and S, to get
+// additive shares of the product.
+// The underline MatrixMultiplicationGateMessage has two matrices: share
+// [X - A] and [S - B], where [X], [S] are the shares of input, and
+// ([A], [B]) are shares in the Beaver triple matrix ([A], [B], [C = A*B]),
+// * represents matrix multiplication mod modulus.
+message GradientDescentRoundFourMessage {
+  MatrixMultiplicationGateMessage matrix_mult_message = 1;
+}

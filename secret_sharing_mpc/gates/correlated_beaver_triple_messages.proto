@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package private_join_and_compute;
+
+// Two parties exchange messages of this type in order to multiply additively
+// shared vector x and y pointwise, to get additive shares of the result.
+message MatrixXminusAProductMessage {
+  repeated uint64 matrix_x_minus_matrix_a_shares = 1;
+}
+
+// Two parties exchange messages of this type in order to matrix-multiply
+// additively shared matrices x and y, to get additive shares of the product
+// matrix.
+message MatrixYminusBProductMessage {
+  repeated uint64 matrix_y_minus_matrix_b_shares = 1;
+}
